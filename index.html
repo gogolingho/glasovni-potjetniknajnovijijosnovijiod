@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="hr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Glasovni Podsjetnik</title>
+    <style>
+        :root {
+            --primary: #4f46e5;
+            --primary-hover: #4338ca;
+            --bg: #f8fafc;
+            --card-bg: #ffffff;
+            --text: #1e293b;
+            --text-light: #64748b;
+            --border: #e2e8f0;
+        }
+
+        body {
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 600px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 24px;
+        }
+
+        header h1 {
+            margin: 0 0 8px 0;
+            font-size: 1.75rem;
+            color: var(--primary);
+        }
+
+        header p {
+            margin: 0;
+            color: var(--text-light);
+            font-size: 0.95rem;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+
+        .controls {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .mic-btn {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 50px;
+            padding: 14px 24px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            transition: background 0.2s, transform 0.1s;
+        }
+
+        .mic-btn:hover {
+            background-color: var(--primary-hover);
+        }
+
+        .mic-btn:active {
+            transform: scale(0.98);
+        }
+
+        .mic-btn.recording {
+            background-color: #dc2626;
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.4); }
+            70% { box-shadow: 0 0 0 10px rgba(220, 38, 38, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(220, 38, 38, 0); }
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        label {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-light);
+        }
+
+        textarea, select, input[type="date"] {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-family: inherit;
+            font-size: 0.95rem;
+            box-sizing: border-box;
+            background: #fff;
+        }
+
+        textarea:focus, select:focus, input[type="date"]:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+        }
+
+        .row {
+            display: flex;
+            gap: 12px;
+        }
+
+        .row > div {
+            flex: 1;
+        }
+
+        .save-btn {
+            background-color: #10b981;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+            margin-top: 4px;
+        }
+
+        .save-btn:hover {
+            background-color: #059669;
+        }
+
+        .task-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .task-item {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            position: relative;
+            transition: transform 0.2s;
+        }
+
+        .task-item.completed {
+            opacity: 0.6;
+            background: #f1f5f9;
+        }
+
+        .task-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .badge {
+            font-size: 0.75rem;
+            padding: 4px 8px;
+            border-radius: 20px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .priority-hitno { background: #fee2e2; color: #991b1b; }
+        .priority-vazno { background: #fef3c7; color: #92400e; }
+        .priority-obicno { background: #e0e7ff; color: #3730a3; }
+        .priority-nisko { background: #f1f5f9; color: #475569; }
+
+        .task-date {
+            font-size: 0.8rem;
+            color: var(--text-light);
+        }
+
+        .task-text {
+            font-size: 1rem;
+            word-break: break-word;
+            margin: 0;
+        }
+
+        .task-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 8px;
+            border-top: 1px solid var(--border);
+            padding-top: 8px;
+        }
+
+        .task-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn-icon {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 0.85rem;
+            padding: 4px 8px;
+            border-radius: 4px;
+            color: var(--text-light);
+        }
+
+        .btn-icon:hover {
+            background: var(--border);
+            color: var(--text);
+        }
+
+        .btn-delete:hover {
+            background: #fee2e2;
+            color: #dc2626;
+        }
+
+        .status-msg {
+            font-size: 0.85rem;
+            color: var(--text-light);
+            text-align: center;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <header>
+            <h1>Glasovni Podsjetnik</h1>
+            <p>Reci mi što trebaš zapamtiti</p>
+        </header>
+
+        <!-- Unosni dio -->
+        <div class="card">
+            <div class="controls">
+                <button id="micBtn" class="mic-btn">
+                    <span>🎤</span> <span id="micText">Snimi glasovnu bilješku</span>
+                </button>
+                <div id="statusMsg" class="status-msg"></div>
+
+                <div class="form-group">
+                    <label for="taskText">Tekst bilješke (možeš i ručno urediti):</label>
+                    <textarea id="taskText" rows="3" placeholder="Ovdje će se pojaviti tekst govora ili ga upiši ručno..."></textarea>
+                </div>
+
+                <div class="row">
+                    <div class="form-group">
+                        <label for="taskPriority">Prioritet:</label>
+                        <select id="taskPriority">
+                            <option value="hitno">🚨 Gori pod nogama (Hitno)</option>
+                            <option value="vazno" selected>⭐ Važno</option>
+                            <option value="obicno">📌 Obično</option>
+                            <option value="nisko">💤 Manje bitno</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="taskDeadline">Rok (Deadline):</label>
+                        <input type="date" id="taskDeadline">
+                    </div>
+                </div>
+
+                <button id="saveBtn" class="save-btn">Spremi podsjetnik</button>
+            </div>
+        </div>
+
+        <!-- Lista zadataka -->
+        <div class="task-list" id="taskList">
+            <!-- Ovdje dolaze spremljeni zadaci -->
+        </div>
+    </div>
+
+    <script>
+        const micBtn = document.getElementById('micBtn');
+        const micText = document.getElementById('micText');
+        const statusMsg = document.getElementById('statusMsg');
+        const taskText = document.getElementById('taskText');
+        const taskPriority = document.getElementById('taskPriority');
+        const taskDeadline = document.getElementById('taskDeadline');
+        const saveBtn = document.getElementById('saveBtn');
+        const taskList = document.getElementById('taskList');
+
+        let tasks = JSON.parse(localStorage.getItem('voice_tasks')) || [];
+
+        // Postavi današnji datum kao defaultni u input za rok
+        const today = new Date().toISOString().split('T')[0];
+        taskDeadline.value = today;
+
+        // Web Speech API provjera
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        let recognition = null;
+
+        if (SpeechRecognition) {
+            recognition = new SpeechRecognition();
+            recognition.lang = 'hr-HR';
+            recognition.continuous = false;
+            recognition.interimResults = false;
+
+            recognition.onstart = () => {
+                micBtn.classList.add('recording');
+                micText.textContent = 'Slušam... govori sada';
+                statusMsg.textContent = 'Govorite jasno u mikrofon...';
+            };
+
+            recognition.onresult = (event) => {
+                const speechResult = event.results[0][0].transcript;
+                taskText.value = speechResult;
+                statusMsg.textContent = 'Prepoznato! Provjeri tekst i spremi.';
+            };
+
+            recognition.onerror = (event) => {
+                statusMsg.textContent = 'Greška kod mikrofona: ' + event.error;
+                stopRecordingUI();
+            };
+
+            recognition.onend = () => {
+                stopRecordingUI();
+            };
+        } else {
+            micBtn.style.display = 'none';
+            statusMsg.textContent = 'Tvoj preglednik ne podržava glasovno prepoznavanje. Možeš tipkati ručno.';
+        }
+
+        function stopRecordingUI() {
+            micBtn.classList.remove('recording');
+            micText.textContent = 'Snimi glasovnu bilješku';
+        }
+
+        micBtn.addEventListener('click', () => {
+            if (!recognition) return;
+            if (micBtn.classList.contains('recording')) {
+                recognition.stop();
+            } else {
+                try {
+                    recognition.start();
+                } catch(e) {
+                    recognition.stop();
+                }
+            }
+        });
+
+        // Spremanje zadatka
+        saveBtn.addEventListener('click', () => {
+            const text = taskText.value.trim();
+            if (!text) {
+                alert('Molimo unesite ili snimite tekst bilješke!');
+                return;
+            }
+
+            const newTask = {
+                id: Date.now(),
+                text: text,
+                priority: taskPriority.value,
+                deadline: taskDeadline.value,
+                completed: false
+            };
+
+            tasks.unshift(newTask);
+            saveAndRender();
+
+            // Reset forme
+            taskText.value = '';
+            statusMsg.textContent = 'Podsjetnik uspješno spremljen!';
+            setTimeout(() => { statusMsg.textContent = ''; }, 3000);
+        });
+
+        function saveAndRender() {
+            localStorage.setItem('voice_tasks', JSON.stringify(tasks));
+            renderTasks();
+        }
+
+        function renderTasks() {
+            taskList.innerHTML = '';
+            if (tasks.length === 0) {
+                taskList.innerHTML = '<div class="card" style="text-align: center; color: #64748b;">Nema spremljenih podsjetnika.</div>';
+                return;
+            }
+
+            tasks.forEach(task => {
+                const item = document.createElement('div');
+                item.className = `task-item ${task.completed ? 'completed' : ''}`;
+
+                let priorityLabel = 'Obično';
+                if (task.priority === 'hitno') priorityLabel = '🚨 Hitno';
+                if (task.priority === 'vazno') priorityLabel = '⭐ Važno';
+                if (task.priority === 'obicno') priorityLabel = '📌 Obično';
+                if (task.priority === 'nisko') priorityLabel = '💤 Manje bitno';
+
+                item.innerHTML = `
+                    <div class="task-header">
+                        <span class="badge priority-${task.priority}">${priorityLabel}</span>
+                        <span class="task-date">Rok: ${task.deadline || 'Nema roka'}</span>
+                    </div>
+                    <p class="task-text">${escapeHtml(task.text)}</p>
+                    <div class="task-footer">
+                        <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 0.85rem;">
+                            <input type="checkbox" ${task.completed ? 'checked' : ''} onchange="toggleComplete(${task.id})">
+                            Završeno
+                        </label>
+                        <div class="task-actions">
+                            <button class="btn-icon" onclick="editTask(${task.id})">Uredi</button>
+                            <button class="btn-icon btn-delete" onclick="delete
+
